@@ -29,9 +29,7 @@ class StaticURLTests(TestCase):
         Post.objects.create(
             id=2,
             text='test text',
-            author=User.objects.create(
-                username='testuser2',
-            ),
+            author=User.objects.create(username='testuser2'),
             group=Group.objects.get(id=2),
         )
         cls.group = Group.objects.get(id=2)

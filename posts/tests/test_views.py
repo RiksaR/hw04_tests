@@ -4,7 +4,6 @@ from django.test import Client, TestCase
 from django.urls import reverse
 
 from posts.models import Group, Post
-from posts.forms import PostForm
 
 User = get_user_model()
 
@@ -74,7 +73,7 @@ class PostsPagesTests(TestCase):
         response = self.authorized_client.get(reverse(
             'group', args=('test_slug_post',))
         )
-        group_text = response.context.get('posts')[0]
+        group_text = response.context.get('page')[0]
         group_title = response.context.get('group').title
         group_slug = response.context.get('group').slug
         group_description = response.context.get('group').description
@@ -95,21 +94,24 @@ class PostsPagesTests(TestCase):
             with self.subTest(value=value):
                 form_field = response.context.get('form').fields.get(value)
                 self.assertIsInstance(form_field, expected)
-    
+
     def test_new_post_display_correctly(self):
         """Новый пост создаётся корректно"""
 
+        test_post = PostsPagesTests.post
+        test_post.group = PostsPagesTests.group2
+        test_post.save()
         response_group_with_post = self.authorized_client.get(reverse(
-            'group', args=('test_slug_post',))
+            'group', args=('test_slug_post_2',))
         )
         response_group_without_post = self.authorized_client.get(reverse(
-            'group', args=('test_slug_post_2',))
+            'group', args=('test_slug_post',))
         )
         response_index = self.authorized_client.get(reverse('index'))
         index_posts = response_index.context.get('page')
-        group_with_post = response_group_with_post.context.get('posts')
+        group_with_post = response_group_with_post.context.get('page')
         group_without_post = response_group_without_post.context.get(
-            'posts'
+            'page'
         )
         self.assertNotIn(PostsPagesTests.post, group_without_post)
         self.assertIn(PostsPagesTests.post, group_with_post)
