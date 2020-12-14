@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block content %}
+{% load user_filters %}
+<main role="main" class="container">
+    <div class="row">
+            <div class="col-md-3 mb-3 mt-1">
+                    <div class="card">
+                            <div class="card-body">
+                                    <div class="h2">
+                                        {{ profile.get_full_name }}
+                                    </div>
+                                    <div class="h3 text-muted">
+                                         {{ profile.username }}
+                                    </div>
+                            </div>
+                            <ul class="list-group list-group-flush">
+                                    <li class="list-group-item">
+                                            <div class="h6 text-muted">
+                                            Подписчиков: XXX <br />
+                                            Подписан: XXX
+                                            </div>
+                                    </li>
+                                    <li class="list-group-item">
+                                            <div class="h6 text-muted">
+                                                Записей: {{ count }}
+                                            </div>
+                                    </li>
+                            </ul>
+                    </div>
+            </div>
+
+            <div class="col-md-9">                
+
+                    <div class="card mb-3 mt-1 shadow-sm">
+                            <div class="card-body">
+                                    <p class="card-text">
+                                            <a href="{% url 'profile' profile.username %}"><strong class="d-block text-gray-dark">{{ profile.get_full_name }}</strong></a>
+                                            {{ last_post.text }}
+                                    </p>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                            <div class="btn-group ">
+                                                    <!-- Ссылка на страницу записи в атрибуте href-->
+                                                    <a class="btn btn-sm text-muted" href="{% url 'post' profile.username last_post.id %}" role="button">Добавить комментарий</a>
+                                                    <!-- Ссылка на редактирование, показывается только автору записи -->
+                                                    <a class="btn btn-sm text-muted" href="{% url 'post_edit' profile.username last_post.id %}" role="button">Редактировать</a>
+                                            </div>
+                                            <small class="text-muted">{{ last_post.pub_date }}</small>
+                                    </div>
+                            </div>
+                    </div>
+                {% for post in page %}
+                        <p><i>{{ post.text|linebreaksbr }}</i></p>
+                        {% if post.group %}
+                                <h6>Группа: <a  href="{% url 'group' post.group.slug %}">{{ post.group.title }}</a></h6>
+                        {% endif %}
+                        <div class="btn-group ">
+                                <!-- Ссылка на страницу записи в атрибуте href-->
+                                <a class="btn btn-sm text-muted" href="{% url 'post' profile.username post.id %}" role="button">Добавить комментарий</a>
+                                <!-- Ссылка на редактирование, показывается только автору записи -->
+                                <a class="btn btn-sm text-muted" href="{% url 'post_edit' profile.username post.id %}" role="button">Редактировать</a>
+                        </div>
+                    {% if not forloop.last %}<hr>{% endif %}
+                {% endfor %} 
+            {% include "paginator.html" %}
+     </div>
+    </div>
+</main>
+{% endblock %}
