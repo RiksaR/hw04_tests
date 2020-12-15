@@ -19,6 +19,7 @@ def index(request):
         'index.html',
         {
             'page': page,
+            'paginator': paginator,
         }
      )
 
@@ -29,7 +30,14 @@ def group_posts(request, slug):
     paginator = Paginator(posts, 10)
     page_number = request.GET.get('page')
     page = paginator.get_page(page_number)
-    return render(request, 'group.html', {'group': group, 'page': page})
+    return render(request,
+        'group.html',
+        {
+            'group': group,
+            'page': page,
+            'paginator': paginator,
+        }
+    )
 
 
 @login_required
@@ -46,9 +54,10 @@ def new_post(request):
 def profile(request, username):
     profile = get_object_or_404(User, username=username)
     posts = profile.posts.all()
-
-    last_post = posts[0]
+    last_post = []
     count = posts.count()
+    if count:
+        last_post = posts[0]
 
     paginator = Paginator(posts, 10)
     page_number = request.GET.get('page')

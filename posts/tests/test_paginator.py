@@ -63,3 +63,59 @@ class PaginatorViewsTest(TestCase):
 
         response = self.guest_client.get(reverse('index') + '?page=2')
         self.assertEqual(len(response.context.get('page').object_list), 3)
+
+    def test_first_page_group_containse_ten_records(self):
+        """Paginator правильно отображает заданное количество постов"""
+
+        user = User.objects.create(
+                username='testuser',
+        )
+        group = Group.objects.create(
+                id=2,
+                title='test title post',
+                slug='test_slug_post',
+                description='test description post',
+        )
+        posts_list = []
+        for i in range(0, 13):
+            posts = Post.objects.create(
+                id=i,
+                text=(f'test text {i}'),
+                author=user,
+                group=group,
+            )
+            posts_list.append(posts)
+
+        response = self.guest_client.get(reverse(
+            'group', args=('test_slug_post',)
+            )
+        )
+        self.assertEqual(len(response.context.get('page').object_list), 10)
+
+    def test_second_page_group_containse_three_records(self):
+        """Paginator правильно отображает заданное количество постов"""
+
+        posts_list = []
+        user = User.objects.create(
+                username='testuser',
+            )
+        group = Group.objects.create(
+            id=1,
+            title='test title number',
+            slug='test_slug_post',
+            description='test description post',
+        )
+        for i in range(0, 13):
+            posts = Post.objects.create(
+                id=i,
+                text=(f'test text {i}'),
+                author=user,
+                group=group,
+            )
+            posts_list.append(posts)
+
+        response = self.guest_client.get(reverse(
+            'group', args=('test_slug_post',)
+            ) + '?page=2'
+        )
+        self.assertEqual(len(response.context.get('page').object_list), 3)

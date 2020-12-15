@@ -12,8 +12,6 @@ class PostModelTest(TestCase):
         super().setUpClass()
         user = User.objects.create(
                 username='testuser',
-                email='testemail@mail.ru',
-                password='testpassword',
         )
         group = Group.objects.create(
                 id=2,

@@ -30,14 +30,14 @@
             </div>
 
             <div class="col-md-9">                
-
-                    <div class="card mb-3 mt-1 shadow-sm">
-                            <div class="card-body">
-                                    <p class="card-text">
+                {% if posts %}
+                        <div class="card mb-3 mt-1 shadow-sm">
+                                <div class="card-body">
+                                        <p class="card-text">
                                             <a href="{% url 'profile' profile.username %}"><strong class="d-block text-gray-dark">{{ profile.get_full_name }}</strong></a>
                                             {{ last_post.text }}
-                                    </p>
-                                    <div class="d-flex justify-content-between align-items-center">
+                                        </p>
+                                        <div class="d-flex justify-content-between align-items-center">
                                             <div class="btn-group ">
                                                     <!-- Ссылка на страницу записи в атрибуте href-->
                                                     <a class="btn btn-sm text-muted" href="{% url 'post' profile.username last_post.id %}" role="button">Добавить комментарий</a>
@@ -45,23 +45,24 @@
                                                     <a class="btn btn-sm text-muted" href="{% url 'post_edit' profile.username last_post.id %}" role="button">Редактировать</a>
                                             </div>
                                             <small class="text-muted">{{ last_post.pub_date }}</small>
-                                    </div>
-                            </div>
-                    </div>
-                {% for post in page %}
-                        <p><i>{{ post.text|linebreaksbr }}</i></p>
-                        {% if post.group %}
-                                <h6>Группа: <a  href="{% url 'group' post.group.slug %}">{{ post.group.title }}</a></h6>
-                        {% endif %}
-                        <div class="btn-group ">
-                                <!-- Ссылка на страницу записи в атрибуте href-->
-                                <a class="btn btn-sm text-muted" href="{% url 'post' profile.username post.id %}" role="button">Добавить комментарий</a>
-                                <!-- Ссылка на редактирование, показывается только автору записи -->
-                                <a class="btn btn-sm text-muted" href="{% url 'post_edit' profile.username post.id %}" role="button">Редактировать</a>
+                                        </div>
+                                </div>
                         </div>
-                    {% if not forloop.last %}<hr>{% endif %}
-                {% endfor %} 
-            {% include "paginator.html" %}
+                        {% for post in page %}
+                                <p><i>{{ post.text|linebreaksbr }}</i></p>
+                                {% if post.group %}
+                                        <h6>Группа: <a  href="{% url 'group' post.group.slug %}">{{ post.group.title }}</a></h6>
+                                {% endif %}
+                                <div class="btn-group ">
+                                        <!-- Ссылка на страницу записи в атрибуте href-->
+                                        <a class="btn btn-sm text-muted" href="{% url 'post' profile.username post.id %}" role="button">Добавить комментарий</a>
+                                        <!-- Ссылка на редактирование, показывается только автору записи -->
+                                        <a class="btn btn-sm text-muted" href="{% url 'post_edit' profile.username post.id %}" role="button">Редактировать</a>
+                                </div>
+                        {% if not forloop.last %}<hr>{% endif %}
+                        {% endfor %} 
+                        {% include "paginator.html" %}
+                {% endif %}
      </div>
     </div>
 </main>
