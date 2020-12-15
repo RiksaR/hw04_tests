@@ -159,16 +159,11 @@ class PostsPagesTests(TestCase):
         )
         profile = response.context.get('profile')
         count = response.context.get('count')
-        posts = response.context.get('posts')
-        #if posts:
-            #last_post = response.context.get('posts')[0]
-        #last_post = []
         post_text = response.context.get('page')[0].text
         post_author = response.context.get('page')[0].author
         post_group = response.context.get('page')[0].group
         self.assertEqual(post_text, 'test text')
         self.assertEqual(post_author, PostsPagesTests.user)
-        #self.assertEqual(last_post, PostsPagesTests.post)
         self.assertEqual(post_group, PostsPagesTests.group)
         self.assertEqual(count, 1)
         self.assertEqual(profile, PostsPagesTests.user)

@@ -30,7 +30,8 @@ def group_posts(request, slug):
     paginator = Paginator(posts, 10)
     page_number = request.GET.get('page')
     page = paginator.get_page(page_number)
-    return render(request,
+    return render(
+        request,
         'group.html',
         {
             'group': group,
