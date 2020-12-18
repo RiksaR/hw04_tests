@@ -3,6 +3,9 @@ from django.test import Client, TestCase
 from django.urls import reverse
 from django.contrib.sites.models import Site
 
+ABOUT_AUTHOR = reverse('about_author')
+ABOUT_SPEC = reverse('about_spec')
+
 
 class StaticPagesTests(TestCase):
     @classmethod
@@ -14,12 +17,12 @@ class StaticPagesTests(TestCase):
             name='127.0.0.1:8000')
         cls.site_name.save()
         cls.about_author = FlatPage.objects.create(
-            url=reverse('about_author'),
+            url=ABOUT_AUTHOR,
             title='test title for flatpage "about-author"',
             content='test content about author'
         )
         cls.about_spec = FlatPage.objects.create(
-            url=reverse('about_spec'),
+            url=ABOUT_SPEC,
             title='test title for flatpage "about-spec"',
             content='test content about spec'
         )
@@ -34,8 +37,8 @@ class StaticPagesTests(TestCase):
         пользователю"""
 
         flatpages_url_names = {
-            reverse('about_author'): 200,
-            reverse('about_spec'): 200,
+            ABOUT_AUTHOR: 200,
+            ABOUT_SPEC: 200,
         }
         for url, status_code in flatpages_url_names.items():
             with self.subTest(url=url):

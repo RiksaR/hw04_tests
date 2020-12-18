@@ -5,6 +5,10 @@ venv/
 .venv/
 .vscode
 .vscode/
+.media
+.media/
+.htmlcov
+htmlcov/
 
 __pycache__/
 *.py[cod]
@@ -22,3 +26,4 @@ static/
 posts/static/
 
 db.sqlite3
+.coverage

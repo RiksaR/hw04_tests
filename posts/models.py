@@ -1,6 +1,5 @@
 from django.contrib.auth import get_user_model
 from django.db import models
-from pytils.translit import slugify
 
 User = get_user_model()
 
@@ -26,11 +25,6 @@ class Group(models.Model):
     def __str__(self):
         return self.title
 
-    def save(self, *args, **kwargs):
-        if not self.slug:
-            self.slug = slugify(self.title)[:100]
-        super().save(*args, **kwargs)
-
 
 class Post(models.Model):
     text = models.TextField(
@@ -52,18 +46,23 @@ class Post(models.Model):
         on_delete=models.SET_NULL,
         related_name='posts',
         verbose_name='Название группы',
-        help_text='Выберите группу',
+        help_text='Вы можете выбрать группу для этого поста',
         blank=True,
         null=True,
+    )
+    image = models.ImageField(
+        upload_to='posts/',
+        blank=True,
+        null=True
     )
 
     class Meta:
         ordering = ('-pub_date',)
 
     def __str__(self):
-        if self.group is not None:
+        if self.group:
             return (f'Текст поста: "{self.text[:15]}...", '
                     f'автор: {self.author.username}, '
-                    f'группа: {self.group}\n')
+                    f'группа: {self.group}')
         return (f'Текст поста: "{self.text[:15]}...", '
-                f'автор: {self.author.username}\n')
+                f'автор: {self.author.username}')

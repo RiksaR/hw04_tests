@@ -6,12 +6,12 @@
 {% block content %}
     <h1>{{ group.title }}</h1>
     <p>
-        {{ group.description }}
+        {{ group.description|linebreaksbr }}
     </p>  
 
     {% for post in page %}  
         <h4>
-            Автор: {{ post.author.get_full_name }}.
+            Автор: <a href="{% url 'profile' post.author.username %}">{{ post.author.get_full_name }}.</a>
             Дата публикации: {{ post.pub_date|date:"d M Y" }}
         </h4>
         <p>{{ post.text|linebreaksbr }}</p>

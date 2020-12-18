@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'sorl.thumbnail',
 ]
 
 MIDDLEWARE = [
@@ -126,15 +127,12 @@ USE_L10N = True
 USE_TZ = True
 
 EMAIL_BACKEND = "django.core.mail.backends.filebased.EmailBackend"
-
 EMAIL_FILE_PATH = os.path.join(BASE_DIR, "sent_emails")
 
 # Login
 
 LOGIN_URL = "/auth/login/"
-
 LOGIN_REDIRECT_URL = "index" 
-
 # LOGOUT_REDIRECT_URL = "index"
 
 
@@ -142,8 +140,10 @@ LOGIN_REDIRECT_URL = "index"
 # https://docs.djangoproject.com/en/2.2/howto/static-files/
 
 STATIC_URL = '/static/'
-
 STATIC_ROOT = os.path.join(BASE_DIR, "static")
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # Идентификатор текущего сайта
 

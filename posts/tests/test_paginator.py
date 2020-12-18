@@ -1,121 +1,109 @@
-from django.contrib.auth import get_user_model
 from django.urls import reverse
 from django.test import TestCase, Client
 
-from posts.models import Group, Post
+from posts.models import Group, Post, User
 
-User = get_user_model()
+USERNAME_FOR_CLIENT = 'alexey'
+USERNAME = 'testuser'
+GROUP_TITLE_FOR_POST = 'test title post'
+GROUP_SLUG_FOR_POST = 'test_slug_post'
+GROUP_DESCRIPTION_FOR_POST = 'test description post'
+POST_TEXT = 'test text'
+
+URL_FOR_INDEX = reverse('index')
+URL_FOR_INDEX_SECOND_PAGE = reverse('index') + '?page=2'
+URL_FOR_GROUP = (reverse('group', args=(GROUP_SLUG_FOR_POST,)))
+URL_FOR_GROUP_SECOND_PAGE = (reverse(
+            'group', args=(GROUP_SLUG_FOR_POST,)
+            ) + '?page=2'
+        )
 
 
 class PaginatorViewsTest(TestCase):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.user = User.objects.create(
+                username=USERNAME,
+        )
+        cls.group =  Group.objects.create(
+                title=GROUP_TITLE_FOR_POST,
+                slug=GROUP_SLUG_FOR_POST,
+                description=GROUP_DESCRIPTION_FOR_POST,
+        )
+
     def setUp(self):
         self.guest_client = Client()
-        self.user_for_client = User.objects.create(username=('alexey'))
+        self.user_for_client = User.objects.create(
+            username=USERNAME_FOR_CLIENT
+        )
         self.authorized_client = Client()
         self.authorized_client.force_login(self.user_for_client)
 
     def test_first_page_containse_ten_records(self):
         """Paginator правильно отображает заданное количество постов"""
-
         posts_list = []
         for i in range(0, 13):
             user = User.objects.create(
                 username=(f'testuser{i}'),
             )
             group = Group.objects.create(
-                id=i,
                 title=(f'test title number {i}'),
                 slug=(f'test_slug_post_{i}'),
                 description=(f'test description post {i}'),
             )
             posts = Post.objects.create(
-                id=i,
                 text=(f'test text {i}'),
                 author=user,
                 group=group,
             )
             posts_list.append(posts)
-
-        response = self.guest_client.get(reverse('index'))
-        self.assertEqual(len(response.context.get('page').object_list), 10)
+        response = self.guest_client.get(URL_FOR_INDEX)
+        self.assertEqual(len(response.context['page']), 10)
 
     def test_second_page_containse_three_records(self):
         """Paginator правильно отображает заданное количество постов"""
-
         posts_list = []
         for i in range(0, 13):
             user = User.objects.create(
                 username=(f'testuser{i}'),
             )
             group = Group.objects.create(
-                id=i,
                 title=(f'test title number {i}'),
                 slug=(f'test_slug_post_{i}'),
                 description=(f'test description post {i}'),
             )
             posts = Post.objects.create(
-                id=i,
                 text=(f'test text {i}'),
                 author=user,
                 group=group,
             )
             posts_list.append(posts)
-
-        response = self.guest_client.get(reverse('index') + '?page=2')
-        self.assertEqual(len(response.context.get('page').object_list), 3)
+        response = self.guest_client.get(URL_FOR_INDEX_SECOND_PAGE)
+        self.assertEqual(len(response.context['page']), 3)
 
     def test_first_page_group_containse_ten_records(self):
         """Paginator правильно отображает заданное количество постов"""
-
-        user = User.objects.create(
-                username='testuser',
-        )
-        group = Group.objects.create(
-                id=2,
-                title='test title post',
-                slug='test_slug_post',
-                description='test description post',
-        )
         posts_list = []
         for i in range(0, 13):
             posts = Post.objects.create(
-                id=i,
                 text=(f'test text {i}'),
-                author=user,
-                group=group,
+                author=PaginatorViewsTest.user,
+                group=PaginatorViewsTest.group,
             )
             posts_list.append(posts)
-
-        response = self.guest_client.get(reverse(
-            'group', args=('test_slug_post',)
-            )
-        )
-        self.assertEqual(len(response.context.get('page').object_list), 10)
+        response = self.guest_client.get(URL_FOR_GROUP)
+        self.assertEqual(len(response.context['page']), 10)
 
     def test_second_page_group_containse_three_records(self):
         """Paginator правильно отображает заданное количество постов"""
-
         posts_list = []
-        user = User.objects.create(
-                username='testuser',
-            )
-        group = Group.objects.create(
-            id=1,
-            title='test title number',
-            slug='test_slug_post',
-            description='test description post',
-        )
         for i in range(0, 13):
             posts = Post.objects.create(
-                id=i,
                 text=(f'test text {i}'),
-                author=user,
-                group=group,
+                author=PaginatorViewsTest.user,
+                group=PaginatorViewsTest.group,
             )
             posts_list.append(posts)
-
-        response = self.guest_client.get(reverse(
-            'group', args=('test_slug_post',)
-            ) + '?page=2'
-        )
-        self.assertEqual(len(response.context.get('page').object_list), 3)
+        response = self.guest_client.get(URL_FOR_GROUP_SECOND_PAGE)
+        self.assertEqual(len(response.context['page']), 3)

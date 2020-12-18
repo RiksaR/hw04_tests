@@ -1,54 +1,84 @@
 from django.test import TestCase, Client
-from django.contrib.auth import get_user_model
 from django.urls import reverse
 
-from posts.models import Group, Post
+from posts.models import Group, Post, User
 
-User = get_user_model()
+USERNAME = 'testuser'
+USERNAME2 = 'testuser2'
+USERNAME3 = 'otheruser'
+GROUP_TITLE_FOR_POST = 'test title post'
+GROUP_SLUG_FOR_POST = 'test_slug_post'
+GROUP_SLUG_FOR_STATUS_404 = 'test_slug_pos'
+GROUP_DESCRIPTION_FOR_POST = 'test description post'
+POST_TEXT = 'test text'
+
+URL_FOR_INDEX = reverse('index')
+URL_FOR_GROUP = reverse('group', args=(GROUP_SLUG_FOR_POST,))
+URL_FOR_STATUS_404 = reverse('group', args=(GROUP_SLUG_FOR_STATUS_404,))
+URL_FOR_NEW_POST = reverse('new_post')
+URL_FOR_PROFILE = reverse('profile', args=(USERNAME,))
 
 
 class StaticURLTests(TestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        user_for_post = User.objects.create(
-                username='testuser',
+        cls.user =  User.objects.create(
+            username=USERNAME,
         )
-        Group.objects.create(
-                id=2,
-                title='test title post',
-                slug='test_slug_post',
-                description='test description post',
+        cls.group = Group.objects.create(
+            title=GROUP_TITLE_FOR_POST,
+            slug=GROUP_SLUG_FOR_POST,
+            description=GROUP_DESCRIPTION_FOR_POST,
         )
-        Post.objects.create(
-            id=1,
-            text='test text',
-            author=user_for_post,
-            group=Group.objects.get(id=2),
+        cls.post1 = Post.objects.create(
+            text=POST_TEXT,
+            author=cls.user,
+            group=cls.group,
         )
-        Post.objects.create(
-            id=2,
-            text='test text',
-            author=User.objects.create(username='testuser2'),
-            group=Group.objects.get(id=2),
+        cls.post2 = Post.objects.create(
+            text=POST_TEXT,
+            author=User.objects.create(username=USERNAME2),
+            group=cls.group,
         )
-        cls.group = Group.objects.get(id=2)
-        cls.user_for_post = user_for_post
+        cls.URL_FOR_POST_EDIT = reverse(
+            'post_edit',
+            args=(USERNAME, cls.post1.id)
+        )
+        cls.URL_FOR_POST = reverse(
+            'post',
+            args=(USERNAME, cls.post1.id)
+        )
+        cls.URL_FOR_OTHER_USER = reverse(
+            'post_edit',
+            args=(USERNAME3, cls.post1.id)
+        )
+        cls.URL_FOR_POST_REDIRECT = reverse('post', args=(
+            USERNAME2,
+            cls.post2.id
+            )
+        )
+        cls.URL_FOR_POST_EDIT_REDIRECT = reverse(
+            'post_edit', args=(
+                USERNAME2,
+                cls.post2.id
+            )
+        )
 
     def setUp(self):
         self.guest_client = Client()
-        self.user_client = StaticURLTests.user_for_post
+        self.user_client = self.user
         self.authorized_client = Client()
         self.authorized_client.force_login(self.user_client)
 
     def test_guest_urls_exists_at_desired_location(self):
         """Страница по заданному адресу доступна неавторизованному
         пользователю."""
-
         guest_url_names = {
-            '/': 200,
-            '/group/test_slug_post/': 200,
-            '/testuser/1/edit/': 302,
+            URL_FOR_INDEX: 200,
+            URL_FOR_GROUP: 200,
+            StaticURLTests.URL_FOR_POST_EDIT: 302,
+            URL_FOR_STATUS_404: 404,
         }
         for url, status_code in guest_url_names.items():
             with self.subTest():
@@ -58,12 +88,11 @@ class StaticURLTests(TestCase):
     def test_authorized_urls_exists_at_desired_location(self):
         """Страница по заданному адресу доступна авторизованному
         пользователю."""
-
         authorized_url_names = {
-            '/new/': 200,
-            '/testuser/': 200,
-            '/testuser/1/': 200,
-            '/testuser/1/edit/': 200,
+            URL_FOR_NEW_POST: 200,
+            URL_FOR_PROFILE: 200,
+            StaticURLTests.URL_FOR_POST: 200,
+            StaticURLTests.URL_FOR_POST_EDIT: 200,
         }
         for url, status_code in authorized_url_names.items():
             with self.subTest():
@@ -72,12 +101,11 @@ class StaticURLTests(TestCase):
 
     def test_urls_uses_correct_template(self):
         """URL-адрес использует соответствующий шаблон."""
-
         templates_url_names = {
-            'index.html': '/',
-            'group.html': '/group/test_slug_post/',
-            'new.html': '/new/',
-            'new.html': '/testuser/1/edit/'
+            'index.html': URL_FOR_INDEX,
+            'group.html': URL_FOR_GROUP,
+            'new.html': URL_FOR_NEW_POST,
+            'new.html': StaticURLTests.URL_FOR_POST_EDIT,
         }
         for template, reverse_name in templates_url_names.items():
             with self.subTest():
@@ -87,10 +115,10 @@ class StaticURLTests(TestCase):
     def test_urls_redirect_anonymous_on_admin_login(self):
         """Страница по заданному адресу перенаправит анонимного
         пользователя на страницу логина."""
-
         redirect_url_names = {
-            '/new/': '/auth/login/?next=/new/',
-            '/otheruser/1/edit/': '/auth/login/?next=/otheruser/1/edit/',
+            URL_FOR_NEW_POST: '/auth/login/?next=/new/',
+            StaticURLTests.URL_FOR_OTHER_USER:
+            '/auth/login/?next=/otheruser/1/edit/',
         }
         for url, redirect in redirect_url_names.items():
             with self.subTest():
@@ -100,9 +128,9 @@ class StaticURLTests(TestCase):
 
     def test_for_post_edit_by_other_user(self):
         """Пользователь будет перенаправлен на страницу поста"""
-
         redirect_url_names = {
-            '/testuser2/2/edit/': reverse('post', args=('testuser2', 2)),
+            StaticURLTests.URL_FOR_POST_EDIT_REDIRECT:
+            StaticURLTests.URL_FOR_POST_REDIRECT,
         }
         for url, redirect in redirect_url_names.items():
             with self.subTest():
