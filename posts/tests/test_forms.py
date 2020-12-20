@@ -17,6 +17,7 @@ POST_TEXT = 'test text'
 URL_FOR_NEW_POST = reverse('new_post')
 URL_FOR_INDEX = reverse('index')
 URL_FOR_GROUP = reverse('group', args=(GROUP_SLUG,))
+URL_FOR_NEW_POST_REDIRECT = (reverse('login') + '?next=/new/')
 
 
 class PostCreateFormTests(TestCase):
@@ -52,6 +53,7 @@ class PostCreateFormTests(TestCase):
             )
         )
         self.URL_FOR_POST = reverse('post', args=(USERNAME, self.post.id))
+        self.guest_client = Client()
         self.authorized_client = Client()
         self.authorized_client.force_login(self.user)
 
@@ -90,12 +92,21 @@ class PostCreateFormTests(TestCase):
             data=form_data,
             follow=True,
         )
+        response_guest = self.guest_client.post(
+            URL_FOR_NEW_POST,
+            data=form_data,
+            follow=True,
+        )
         create_post = Post.objects.first()
+        response_for_group = self.authorized_client.get(URL_FOR_GROUP)
+        context_for_group = response_for_group.context['page']
         self.assertRedirects(response, URL_FOR_INDEX)
+        self.assertRedirects(response_guest, URL_FOR_NEW_POST_REDIRECT)
         self.assertEqual(Post.objects.count(), posts_count + 1)
         self.assertEqual(create_post.text, TEXT_FOR_CREATE)
         self.assertEqual(create_post.group, group_for_create)
         self.assertEqual(create_post.author, self.user)
+        self.assertNotIn(create_post, context_for_group)
         #self.assertEqual(new_post.image.name, uploaded.name)
 
     def test_change_post(self):
