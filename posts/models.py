@@ -66,3 +66,26 @@ class Post(models.Model):
                     f'группа: {self.group}')
         return (f'Текст поста: "{self.text[:15]}...", '
                 f'автор: {self.author.username}')
+    # А можно оставить в таком виде? Красиво же=) Если нет, я исправлю.
+
+
+class Comment(models.Model):
+    post = models.ForeignKey(
+        Post,
+        on_delete=models.CASCADE,
+        related_name='comments',
+    )
+    author = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='comments',
+    )
+    text = models.TextField(
+        verbose_name='Текст комментария',
+        help_text='Введите ваш комментарий',
+        max_length=200,
+    )
+    created = models.DateTimeField(
+        'date_published',
+        auto_now_add=True,
+    )

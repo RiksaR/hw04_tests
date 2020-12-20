@@ -17,13 +17,15 @@ URL_FOR_GROUP = reverse('group', args=(GROUP_SLUG_FOR_POST,))
 URL_FOR_STATUS_404 = reverse('group', args=(GROUP_SLUG_FOR_STATUS_404,))
 URL_FOR_NEW_POST = reverse('new_post')
 URL_FOR_PROFILE = reverse('profile', args=(USERNAME,))
+URL_FOR_NEW_POST_REDIRECT = (reverse('login') + '?next=/new/')
+URL_FOR_OTHER_USER_REDIRECT = (reverse('login') + '?next=/otheruser/1/edit/')
 
 
 class StaticURLTests(TestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        cls.user =  User.objects.create(
+        cls.user = User.objects.create(
             username=USERNAME,
         )
         cls.group = Group.objects.create(
@@ -71,69 +73,56 @@ class StaticURLTests(TestCase):
         self.authorized_client = Client()
         self.authorized_client.force_login(self.user_client)
 
-    def test_guest_urls_exists_at_desired_location(self):
-        """Страница по заданному адресу доступна неавторизованному
-        пользователю."""
-        guest_url_names = {
-            URL_FOR_INDEX: 200,
-            URL_FOR_GROUP: 200,
-            StaticURLTests.URL_FOR_POST_EDIT: 302,
-            URL_FOR_STATUS_404: 404,
-        }
-        for url, status_code in guest_url_names.items():
+    def test_urls_exists_at_desired_location(self):
+        """Страница по заданному адресу возвращает ожидаемый status_code"""
+        list_for_check_expected_values = [
+            [URL_FOR_INDEX, 200, self.guest_client],
+            [URL_FOR_GROUP, 200, self.guest_client],
+            [self.URL_FOR_POST_EDIT, 302, self.guest_client],
+            [URL_FOR_STATUS_404, 404, self.guest_client],
+            [URL_FOR_NEW_POST, 200, self.authorized_client],
+            [URL_FOR_PROFILE, 200, self.authorized_client],
+            [self.URL_FOR_POST, 200, self.authorized_client],
+            [self.URL_FOR_POST_EDIT, 200, self.authorized_client],
+        ]
+        for url, status_code, client in list_for_check_expected_values:
             with self.subTest():
-                response = self.guest_client.get(url)
-                self.assertEqual(response.status_code, status_code)
-
-    def test_authorized_urls_exists_at_desired_location(self):
-        """Страница по заданному адресу доступна авторизованному
-        пользователю."""
-        authorized_url_names = {
-            URL_FOR_NEW_POST: 200,
-            URL_FOR_PROFILE: 200,
-            StaticURLTests.URL_FOR_POST: 200,
-            StaticURLTests.URL_FOR_POST_EDIT: 200,
-        }
-        for url, status_code in authorized_url_names.items():
-            with self.subTest():
-                response = self.authorized_client.get(url)
+                response = client.get(url)
                 self.assertEqual(response.status_code, status_code)
 
     def test_urls_uses_correct_template(self):
         """URL-адрес использует соответствующий шаблон."""
         templates_url_names = {
-            'index.html': URL_FOR_INDEX,
-            'group.html': URL_FOR_GROUP,
-            'new.html': URL_FOR_NEW_POST,
-            'new.html': StaticURLTests.URL_FOR_POST_EDIT,
+            URL_FOR_INDEX: 'index.html',
+            URL_FOR_GROUP: 'group.html',
+            URL_FOR_NEW_POST: 'new.html',
+            self.URL_FOR_POST_EDIT: 'new.html',
+            self.URL_FOR_POST: 'post.html',
+            URL_FOR_PROFILE: 'profile.html',
         }
-        for template, reverse_name in templates_url_names.items():
+        for reverse_name, template in templates_url_names.items():
             with self.subTest():
                 response = self.authorized_client.get(reverse_name)
                 self.assertTemplateUsed(response, template)
 
     def test_urls_redirect_anonymous_on_admin_login(self):
-        """Страница по заданному адресу перенаправит анонимного
-        пользователя на страницу логина."""
-        redirect_url_names = {
-            URL_FOR_NEW_POST: '/auth/login/?next=/new/',
-            StaticURLTests.URL_FOR_OTHER_USER:
-            '/auth/login/?next=/otheruser/1/edit/',
-        }
-        for url, redirect in redirect_url_names.items():
+        """Redirect корректно срабатывает для авторизованного
+        и неавторизованного пользователя"""
+        list_for_redirect = [
+            [URL_FOR_NEW_POST, URL_FOR_NEW_POST_REDIRECT, self.guest_client],
+            [
+                self.URL_FOR_OTHER_USER,
+                URL_FOR_OTHER_USER_REDIRECT,
+                self.guest_client,
+            ],
+            [
+                self.URL_FOR_POST_EDIT_REDIRECT,
+                self.URL_FOR_POST_REDIRECT,
+                self.authorized_client,
+            ],
+        ]
+        for url, redirect, client in list_for_redirect:
             with self.subTest():
-                response = self.guest_client.get(url, follow=True)
-                self.assertRedirects(
-                    response, redirect)
-
-    def test_for_post_edit_by_other_user(self):
-        """Пользователь будет перенаправлен на страницу поста"""
-        redirect_url_names = {
-            StaticURLTests.URL_FOR_POST_EDIT_REDIRECT:
-            StaticURLTests.URL_FOR_POST_REDIRECT,
-        }
-        for url, redirect in redirect_url_names.items():
-            with self.subTest():
-                response = self.authorized_client.get(url, follow=True)
+                response = client.get(url, follow=True)
                 self.assertRedirects(
                     response, redirect)

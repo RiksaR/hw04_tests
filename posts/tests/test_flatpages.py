@@ -35,7 +35,6 @@ class StaticPagesTests(TestCase):
     def test_flatpage_about_author(self):
         """Страница по заданному URL доступна неавторизованному
         пользователю"""
-
         flatpages_url_names = {
             ABOUT_AUTHOR: 200,
             ABOUT_SPEC: 200,

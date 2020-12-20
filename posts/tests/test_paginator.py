@@ -15,8 +15,7 @@ URL_FOR_INDEX_SECOND_PAGE = reverse('index') + '?page=2'
 URL_FOR_GROUP = (reverse('group', args=(GROUP_SLUG_FOR_POST,)))
 URL_FOR_GROUP_SECOND_PAGE = (reverse(
             'group', args=(GROUP_SLUG_FOR_POST,)
-            ) + '?page=2'
-        )
+            ) + '?page=2')
 
 
 class PaginatorViewsTest(TestCase):
@@ -24,12 +23,12 @@ class PaginatorViewsTest(TestCase):
     def setUpClass(cls):
         super().setUpClass()
         cls.user = User.objects.create(
-                username=USERNAME,
+            username=USERNAME,
         )
         cls.group =  Group.objects.create(
-                title=GROUP_TITLE_FOR_POST,
-                slug=GROUP_SLUG_FOR_POST,
-                description=GROUP_DESCRIPTION_FOR_POST,
+            title=GROUP_TITLE_FOR_POST,
+            slug=GROUP_SLUG_FOR_POST,
+            description=GROUP_DESCRIPTION_FOR_POST,
         )
 
     def setUp(self):
@@ -43,17 +42,17 @@ class PaginatorViewsTest(TestCase):
     def test_first_page_containse_ten_records(self):
         """Paginator правильно отображает заданное количество постов"""
         posts_list = []
-        for i in range(0, 13):
+        for count in range(0, 13):
             user = User.objects.create(
-                username=(f'testuser{i}'),
+                username=(f'testuser{count}'),
             )
             group = Group.objects.create(
-                title=(f'test title number {i}'),
-                slug=(f'test_slug_post_{i}'),
-                description=(f'test description post {i}'),
+                title=(f'test title number {count}'),
+                slug=(f'test_slug_post_{count}'),
+                description=(f'test description post {count}'),
             )
             posts = Post.objects.create(
-                text=(f'test text {i}'),
+                text=(f'test text {count}'),
                 author=user,
                 group=group,
             )
@@ -64,17 +63,17 @@ class PaginatorViewsTest(TestCase):
     def test_second_page_containse_three_records(self):
         """Paginator правильно отображает заданное количество постов"""
         posts_list = []
-        for i in range(0, 13):
+        for count in range(0, 13):
             user = User.objects.create(
-                username=(f'testuser{i}'),
+                username=(f'testuser{count}'),
             )
             group = Group.objects.create(
-                title=(f'test title number {i}'),
-                slug=(f'test_slug_post_{i}'),
-                description=(f'test description post {i}'),
+                title=(f'test title number {count}'),
+                slug=(f'test_slug_post_{count}'),
+                description=(f'test description post {count}'),
             )
             posts = Post.objects.create(
-                text=(f'test text {i}'),
+                text=(f'test text {count}'),
                 author=user,
                 group=group,
             )
@@ -85,11 +84,11 @@ class PaginatorViewsTest(TestCase):
     def test_first_page_group_containse_ten_records(self):
         """Paginator правильно отображает заданное количество постов"""
         posts_list = []
-        for i in range(0, 13):
+        for count in range(0, 13):
             posts = Post.objects.create(
-                text=(f'test text {i}'),
-                author=PaginatorViewsTest.user,
-                group=PaginatorViewsTest.group,
+                text=(f'test text {count}'),
+                author=self.user,
+                group=self.group,
             )
             posts_list.append(posts)
         response = self.guest_client.get(URL_FOR_GROUP)
@@ -98,11 +97,11 @@ class PaginatorViewsTest(TestCase):
     def test_second_page_group_containse_three_records(self):
         """Paginator правильно отображает заданное количество постов"""
         posts_list = []
-        for i in range(0, 13):
+        for count in range(0, 13):
             posts = Post.objects.create(
-                text=(f'test text {i}'),
-                author=PaginatorViewsTest.user,
-                group=PaginatorViewsTest.group,
+                text=(f'test text {count}'),
+                author=self.user,
+                group=self.group,
             )
             posts_list.append(posts)
         response = self.guest_client.get(URL_FOR_GROUP_SECOND_PAGE)

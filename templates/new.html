@@ -1,10 +1,6 @@
 {% extends "base.html" %}
 {% block title %}
-    {% if post %}
-        Редактировать запись
-    {% else %}
-        Новая запись
-    {% endif %}
+    {% if post %}Редактирование записи{% else %}Новая запись{% endif %}
 {% endblock %}
 {% block content %}
 {% load user_filters %}
@@ -13,11 +9,7 @@
         <div class="card">
             <div class="card">
                 <div class="card-header">
-                    {% if post %}
-                        Редактировать запись
-                    {% else %}
-                        Добавить запись
-                    {% endif %}
+                    {% if post %}Редактировать запись{% else %}Добавить запись{% endif %}
                 </div>
             <div class="card-body">
                 <form method="post" enctype="multipart/form-data">
@@ -48,11 +40,7 @@
                         </div>
                     {% endfor %}
                     <button type="submit" class="btn btn-primary">
-                        {% if post %}
-                            Сохранить
-                        {% else %}
-                            Опубликовать
-                        {% endif %}
+                        {% if post %}Сохранить{% else %}Опубликовать{% endif %}
                     </button>
                 </form>
             </div>

@@ -2,7 +2,7 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, redirect, render
 from django.core.paginator import Paginator
 
-from .forms import PostForm
+from .forms import PostForm, CommentsForm
 from .models import Group, Post, User
 
 
@@ -74,14 +74,23 @@ def post_view(request, username, post_id):
         author__username=username,
     )
     author = view_post.author
-    return render(
-        request,
-        'post.html',
-        {
-            'author': author,
-            'view_post': view_post,
-        }
-    )
+    comments = view_post.comments.all()
+    form = CommentsForm()
+    if not form.is_valid():
+        return render(
+            request,
+            'post.html',
+            {
+                'view_post': view_post,
+                'author': author,
+                'form': form,
+                'comments': comments,
+            }
+        )
+    form.instance.author = request.user
+    form.instance.post = view_post
+    form.save()
+    return redirect('post', username, post_id)
 
 
 @login_required
@@ -116,3 +125,24 @@ def page_not_found(request, exception):
 
 def server_error(request):
     return render(request, "misc/500.html", status=500)
+
+
+@login_required
+def add_comment(request, username, post_id):
+    post = get_object_or_404(Post, id=post_id, author__username=username)
+    author = post.author
+    form = CommentsForm(request.POST or None)
+    if not form.is_valid():
+        return render(
+            request,
+            'comments.html',
+            {
+                'form': form,
+                'author': author,
+                'post': post,
+            }
+        )
+    form.instance.author = request.user
+    form.instance.post = post
+    form.save()
+    return redirect('post', username, post_id)

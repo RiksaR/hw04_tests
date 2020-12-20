@@ -1,6 +1,10 @@
 
 from django.test import Client, TestCase
 from django.urls import reverse
+#from django.core.files.uploadedfile import SimpleUploadedFile
+#import shutil
+#import tempfile
+#from django.conf import settings
 
 from posts.models import Group, Post, User
 
@@ -20,9 +24,23 @@ class PostsPagesTests(TestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
+        #settings.MEDIA_ROOT = tempfile.mkdtemp(dir=settings.BASE_DIR)
         cls.user = User.objects.create(
             username=USERNAME,
         )
+        #cls.small_gif = (
+        #    b'\x47\x49\x46\x38\x39\x61\x02\x00'
+        #    b'\x01\x00\x80\x00\x00\x00\x00\x00'
+        #    b'\xFF\xFF\xFF\x21\xF9\x04\x00\x00'
+        #    b'\x00\x00\x00\x2C\x00\x00\x00\x00'
+        #    b'\x02\x00\x01\x00\x00\x02\x02\x0C'
+        #    b'\x0A\x00\x3B'
+        #)
+        #cls.uploaded = SimpleUploadedFile(
+        #    name='small.gif',
+        #    content=cls.small_gif,
+        #    content_type='image/gif'
+        #)
         cls.group = Group.objects.create(
             title=GROUP_TITLE_FOR_POST,
             slug=GROUP_SLUG_FOR_POST,
@@ -32,6 +50,7 @@ class PostsPagesTests(TestCase):
             text=POST_TEXT,
             author=cls.user,
             group=cls.group,
+        #    image=cls.uploaded,
         )
         cls.URL_FOR_POST_EDIT = reverse(
             'post_edit',
@@ -42,63 +61,56 @@ class PostsPagesTests(TestCase):
             args=(USERNAME, cls.post.id)
         )
 
+    #@classmethod
+    #def tearDownClass(cls):
+    #    shutil.rmtree(settings.MEDIA_ROOT, ignore_errors=True)
+    #    super().tearDownClass()
+
     def setUp(self):
         self.user_for_client = self.user
         self.guest_client = Client()
         self.authorized_client = Client()
         self.authorized_client.force_login(self.user_for_client)
 
-    def test_pages_uses_correct_template(self):
-        """URL-адрес использует соответствующий шаблон"""
-        templates_pages_names = {
-            'index.html': URL_FOR_INDEX,
-            'group.html': URL_FOR_GROUP,
-            'new.html': URL_FOR_NEW_POST,
+    def test_pages_shows_correct_context(self):
+        """Шаблон сформирован с правильным контекстом"""
+        context_url_names = {
+            URL_FOR_INDEX: 'page',
+            URL_FOR_GROUP: 'page',
+            URL_FOR_PROFILE: 'page',
         }
-        for template, reverse_name in templates_pages_names.items():
-            with self.subTest(reverse_name=reverse_name):
+        for reverse_name, context in context_url_names.items():
+            with self.subTest():
                 response = self.authorized_client.get(reverse_name)
-                self.assertTemplateUsed(response, template)
-
-    def test_homepage_shows_correct_context(self):
-        """Шаблон index.html сформирован с правильным контекстом."""
-        response = self.authorized_client.get(URL_FOR_INDEX)
-        post = response.context.get('page')
-        self.assertIn(PostsPagesTests.post, post)
-
-    def test_page_group_shows_correct_context(self):
-        """Шаблон group.html сформирован с правильным контекстом."""
-        response = self.authorized_client.get(URL_FOR_GROUP)
-        group = response.context.get('page')
-        self.assertIn(PostsPagesTests.post, group)
+                context = response.context[context]
+                self.assertIn(self.post, context)
 
     def test_page_new_post_edit_shows_correct_context(self):
         """Шаблон new.html сформирован с правильным контекстом для
-        редактируемого поста"""
+        страницы редактирования поста"""
         response = self.authorized_client.get(
-            PostsPagesTests.URL_FOR_POST_EDIT
+            self.URL_FOR_POST_EDIT
         )
-        post_text = response.context.get('post').text
-        post_group = response.context.get('post').group
-        self.assertEqual(post_text, 'test text')
-        self.assertEqual(post_group, PostsPagesTests.group)
+        post = response.context['post']
+        self.assertEqual(post.text, 'test text')
+        self.assertEqual(post.group, self.group)
 
-    def test_page_profile_shows_correct_context(self):
-        """Шаблон profile.html сформирован с правильным контекстом"""
+    def test_page_profile_shows_correct_author(self):
+        """Шаблон profile.html принимает правильный контекст из
+        переменной author"""
         response = self.authorized_client.get(URL_FOR_PROFILE)
-        author = response.context.get('author')
-        post = response.context.get('page')
-        self.assertIn(PostsPagesTests.post, post)
-        self.assertEqual(author, PostsPagesTests.user)
+        author = response.context['author']
+        self.assertEqual(author, self.user)
 
     def test_page_post_shows_correct_context(self):
         """Шаблон post.html сформирован с правильным контекстом"""
-        response = self.authorized_client.get(PostsPagesTests.URL_FOR_POST)
-        author = response.context.get('author')
-        post_text = response.context.get('view_post').text
-        post_author = response.context.get('view_post').author
-        post_group = response.context.get('view_post').group
-        self.assertEqual(post_text, 'test text')
-        self.assertEqual(post_author, PostsPagesTests.user)
-        self.assertEqual(post_group, PostsPagesTests.group)
-        self.assertEqual(author, PostsPagesTests.user)
+        response = self.authorized_client.get(self.URL_FOR_POST)
+        post = response.context['view_post']
+        self.assertEqual(post.text, 'test text')
+        self.assertEqual(post.author, self.user)
+        self.assertEqual(post.group, self.group)
+    # Если перенести эту проверку в test_pages_shows_correct_context
+    # Выдаёт ошибку, т.к. на страницу поста не передаётся список
+    # объектов, и выдаёт ошибку, что аргументы типа Post не итерируются
+    # по этой причине я оставил проверку автора в этом тесте,
+    # и отдельно сделал проверку автора для страницы profile

@@ -17,12 +17,12 @@ class PostModelTest(TestCase):
     def setUpClass(cls):
         super().setUpClass()
         cls.user = User.objects.create(
-                username=USERNAME,
+            username=USERNAME,
         )
         cls.group = Group.objects.create(
-                title=GROUP_TITLE_FOR_POST,
-                slug=GROUP_SLUG_FOR_POST,
-                description=GROUP_DESCRIPTION_FOR_POST,
+            title=GROUP_TITLE_FOR_POST,
+            slug=GROUP_SLUG_FOR_POST,
+            description=GROUP_DESCRIPTION_FOR_POST,
         )
         cls.post = Post.objects.create(
             text=POST_TEXT,
@@ -32,7 +32,7 @@ class PostModelTest(TestCase):
 
     def test_verbose_name(self):
         """vervose_name в полях совпадает с ожидаемым."""
-        post = PostModelTest.post
+        post = self.post
         field_verboses = {
             'text': 'Текст сообщения',
             'author': 'Автор сообщения',
@@ -46,7 +46,7 @@ class PostModelTest(TestCase):
 
     def test_help_text(self):
         """help_text в полях совпадает с ожидаемым."""
-        post = PostModelTest.post
+        post = self.post
         field_help_texts = {
             'text': 'Введите ваше сообщение',
             'group': 'Вы можете выбрать группу для этого поста',
@@ -59,7 +59,7 @@ class PostModelTest(TestCase):
 
     def text_object_name_is_string_field(self):
         """Вызов объекта как str должен вывести заданную строку"""
-        post = PostModelTest.post
+        post = self.post
         if post.group:
             expected_object_name = (f'Текст поста: "{post.text[:15]}...", '
                                     f'автор: {post.author.username}, '
@@ -81,7 +81,7 @@ class GroupModelTest(TestCase):
 
     def test_verbose_name(self):
         """verbose_name в полях совпадает с ожидаемым."""
-        group = GroupModelTest.group
+        group = self.group
         field_verboses = {
             'title': 'Заголовок группы',
             'slug': 'Идентификатор группы',
@@ -95,7 +95,7 @@ class GroupModelTest(TestCase):
 
     def test_help_text(self):
         """help_text в полях совпадает с ожидаемым."""
-        group = GroupModelTest.group
+        group = self.group
         field_help_texts = {
             'title': 'Введите название группы длиной не более 200 символов',
             'slug': ('Slug группы должен быть уникальным и не превышать 100 '
@@ -110,6 +110,6 @@ class GroupModelTest(TestCase):
 
     def text_object_name_is_title_field(self):
         """Вызов объекта как str должен вывести содержимое поля title"""
-        group = GroupModelTest.group
+        group = self.group
         expected_object_name = group.title
         self.assertEqual(expected_object_name, str(group))
