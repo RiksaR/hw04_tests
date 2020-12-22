@@ -1,5 +1,5 @@
+from django.test import Client, TestCase
 from django.urls import reverse
-from django.test import TestCase, Client
 
 from posts.models import Group, Post, User
 

@@ -1,11 +1,12 @@
 
-from django.test import Client, TestCase
-from django.urls import reverse
-from django.core.files.uploadedfile import SimpleUploadedFile
 import shutil
 import tempfile
+
 from django.conf import settings
 from django.core.cache import cache
+from django.core.files.uploadedfile import SimpleUploadedFile
+from django.test import Client, TestCase
+from django.urls import reverse
 
 from posts.models import Group, Post, User
 
@@ -74,7 +75,7 @@ class PostsPagesTests(TestCase):
         self.authorized_client.force_login(self.user_for_client)
 
     def test_pages_shows_correct_context(self):
-        """В шаблон передаётся корректный контекст"""
+        """Страница сформирована с корректным контекстом"""
         context_url_names = [
             URL_FOR_INDEX,
             URL_FOR_GROUP,
@@ -92,7 +93,7 @@ class PostsPagesTests(TestCase):
                 self.assertTrue(self.post==post)
 
     def test_pages_shows_correct_author(self):
-        """Контекстная переменная author передаёт корректные данные в шаблон"""
+        """Контекстная переменная author формирует корректные данные"""
         context_url_names = [
             URL_FOR_PROFILE,
             self.URL_FOR_POST,
@@ -100,21 +101,8 @@ class PostsPagesTests(TestCase):
         for url in context_url_names:
             with self.subTest():
                 response = self.authorized_client.get(url)
-                if 'page' in response.context:
-                    post = response.context['page'][0]
-                    self.assertTrue(1==len(response.context['page']))
-                else:
-                    post = response.context['post']
-                self.assertTrue(self.post.author==post.author)
-
-    def test_page_new_post_edit_shows_correct_context(self):
-        """В шаблон new.html передаётся корректный контекст для
-        страницы редактирования поста"""
-        response = self.authorized_client.get(
-            self.URL_FOR_POST_EDIT
-        )
-        post = response.context['post']
-        self.assertEqual(post.text, 'test text')
+                author = response.context['author']
+                self.assertTrue(self.user==author)
 
     def test_index_cache(self):
         """Кэширование страницы выполняется корректно"""
@@ -129,20 +117,13 @@ class PostsPagesTests(TestCase):
         )
         page_before = self.authorized_client.get(URL_FOR_INDEX)
         content_before = page_before.content
-        context_before = page_before.context['page']
-        post = context_before[0]
+        post = Post.objects.first()
         post.delete()
         post.save()
         cache_page = self.authorized_client.get(URL_FOR_INDEX)
         cache_content = cache_page.content
-        cache_context = cache_page.context['page']
         cache.clear()
         page_after = self.authorized_client.get(URL_FOR_INDEX)
         content_after = page_after.content
-        context_after = page_after.context['page']
-        self.assertRedirects(response, self.URL_FOR_POST)
-        self.assertIn(post, context_before)
-        self.assertIn(post, cache_context)
-        #self.assertNotIn(post, context_after)
         self.assertTrue(content_before==cache_content)
         self.assertFalse(content_before==content_after)

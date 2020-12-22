@@ -1,7 +1,8 @@
-from django.test import TestCase, Client
+from django.test import Client, TestCase
 from django.urls import reverse
 
 from posts.models import Group, Post, User
+from posts.tests.test_forms import URL_FOR_LOGIN
 
 USERNAME = 'testuser'
 USERNAME2 = 'testuser2'
@@ -17,7 +18,7 @@ URL_FOR_GROUP = reverse('group', args=(GROUP_SLUG_FOR_POST,))
 URL_FOR_STATUS_404 = reverse('group', args=(GROUP_SLUG_FOR_STATUS_404,))
 URL_FOR_NEW_POST = reverse('new_post')
 URL_FOR_PROFILE = reverse('profile', args=(USERNAME,))
-URL_FOR_NEW_POST_REDIRECT = (reverse('login') + '?next=' + reverse('new_post'))
+URL_FOR_NEW_POST_REDIRECT = (URL_FOR_LOGIN + '?next=' + URL_FOR_NEW_POST)
 
 
 class StaticURLTests(TestCase):
@@ -65,13 +66,14 @@ class StaticURLTests(TestCase):
                 cls.post2.id
             )
         )
+        cls.URL_FOR_OTHER_USER = reverse(
+            'post_edit',
+            args=(USERNAME3, cls.post1.id)
+        )
         cls.URL_FOR_OTHER_USER_REDIRECT = (
-            reverse('login') +
+            URL_FOR_LOGIN +
             '?next=' +
-            reverse(
-                'post_edit',
-                args=(USERNAME3, cls.post1.id),
-            )
+            cls.URL_FOR_OTHER_USER
         )
 
     def setUp(self):

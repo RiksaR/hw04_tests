@@ -92,7 +92,7 @@ def post_view(request, username, post_id):
 def post_edit(request, username, post_id):
     author = get_object_or_404(User, username=username)
     if not request.user.username == username:
-        return redirect('post', author, post_id)
+        return redirect('post', author.username, post_id)
     post = get_object_or_404(
         Post,
         id=post_id,
@@ -106,7 +106,7 @@ def post_edit(request, username, post_id):
     if not form.is_valid():
         return render(request, 'new.html', {'form': form, 'post': post})
     form.save()
-    return redirect('post', author, post_id)
+    return redirect('post', author.username, post_id)
 
 
 def page_not_found(request, exception):
@@ -125,20 +125,18 @@ def server_error(request):
 @login_required
 def add_comment(request, username, post_id):
     post = get_object_or_404(Post, id=post_id, author__username=username)
-    author = post.author
-    form = CommentsForm(request.POST or None)
+    form = CommentsForm(request.POST)
     if not form.is_valid():
         return render(
             request,
             'comments.html',
             {
                 'form': form,
-                'author': author,
                 'post': post,
             }
         )
-    change = form.save(commit=False)
-    change.author = request.user
-    change.post = post
-    change.save()
+    comment = form.save(commit=False)
+    comment.author = request.user
+    comment.post = post
+    comment.save()
     return redirect('post', username, post_id)
