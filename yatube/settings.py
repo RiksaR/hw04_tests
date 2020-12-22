@@ -148,3 +148,9 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 # Идентификатор текущего сайта
 
 SITE_ID = 1
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+    }
+}

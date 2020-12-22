@@ -13,9 +13,12 @@ POST_TEXT = 'test text'
 URL_FOR_INDEX = reverse('index')
 URL_FOR_INDEX_SECOND_PAGE = reverse('index') + '?page=2'
 URL_FOR_GROUP = (reverse('group', args=(GROUP_SLUG_FOR_POST,)))
-URL_FOR_GROUP_SECOND_PAGE = (reverse(
-            'group', args=(GROUP_SLUG_FOR_POST,)
-            ) + '?page=2')
+URL_FOR_GROUP_SECOND_PAGE = (
+    reverse(
+        'group',
+        args=(GROUP_SLUG_FOR_POST,)
+    ) + '?page=2'
+)
 
 
 class PaginatorViewsTest(TestCase):

@@ -68,29 +68,24 @@ def profile(request, username):
 
 
 def post_view(request, username, post_id):
-    view_post = get_object_or_404(
+    post = get_object_or_404(
         Post,
         id=post_id,
         author__username=username,
     )
-    author = view_post.author
-    comments = view_post.comments.all()
+    author = post.author
+    comments = post.comments.all()
     form = CommentsForm()
-    if not form.is_valid():
-        return render(
-            request,
-            'post.html',
-            {
-                'view_post': view_post,
-                'author': author,
-                'form': form,
-                'comments': comments,
-            }
-        )
-    form.instance.author = request.user
-    form.instance.post = view_post
-    form.save()
-    return redirect('post', username, post_id)
+    return render(
+        request,
+        'post.html',
+        {
+            'post': post,
+            'author': author,
+            'form': form,
+            'comments': comments,
+        }
+    )
 
 
 @login_required
@@ -142,7 +137,8 @@ def add_comment(request, username, post_id):
                 'post': post,
             }
         )
-    form.instance.author = request.user
-    form.instance.post = post
-    form.save()
+    change = form.save(commit=False)
+    change.author = request.user
+    change.post = post
+    change.save()
     return redirect('post', username, post_id)

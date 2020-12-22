@@ -17,8 +17,7 @@ URL_FOR_GROUP = reverse('group', args=(GROUP_SLUG_FOR_POST,))
 URL_FOR_STATUS_404 = reverse('group', args=(GROUP_SLUG_FOR_STATUS_404,))
 URL_FOR_NEW_POST = reverse('new_post')
 URL_FOR_PROFILE = reverse('profile', args=(USERNAME,))
-URL_FOR_NEW_POST_REDIRECT = (reverse('login') + '?next=/new/')
-URL_FOR_OTHER_USER_REDIRECT = (reverse('login') + '?next=/otheruser/1/edit/')
+URL_FOR_NEW_POST_REDIRECT = (reverse('login') + '?next=' + reverse('new_post'))
 
 
 class StaticURLTests(TestCase):
@@ -66,6 +65,14 @@ class StaticURLTests(TestCase):
                 cls.post2.id
             )
         )
+        cls.URL_FOR_OTHER_USER_REDIRECT = (
+            reverse('login') +
+            '?next=' +
+            reverse(
+                'post_edit',
+                args=(USERNAME3, cls.post1.id),
+            )
+        )
 
     def setUp(self):
         self.guest_client = Client()
@@ -75,17 +82,23 @@ class StaticURLTests(TestCase):
 
     def test_urls_exists_at_desired_location(self):
         """Страница по заданному адресу возвращает ожидаемый status_code"""
-        list_for_check_expected_values = [
+        expected_status_code = [
             [URL_FOR_INDEX, 200, self.guest_client],
             [URL_FOR_GROUP, 200, self.guest_client],
+            [URL_FOR_NEW_POST, 302, self.guest_client],
+            [URL_FOR_PROFILE, 200, self.guest_client],
+            [self.URL_FOR_POST, 200, self.guest_client],
             [self.URL_FOR_POST_EDIT, 302, self.guest_client],
             [URL_FOR_STATUS_404, 404, self.guest_client],
+            [URL_FOR_INDEX, 200, self.authorized_client],
+            [URL_FOR_GROUP, 200, self.authorized_client],
             [URL_FOR_NEW_POST, 200, self.authorized_client],
             [URL_FOR_PROFILE, 200, self.authorized_client],
             [self.URL_FOR_POST, 200, self.authorized_client],
             [self.URL_FOR_POST_EDIT, 200, self.authorized_client],
+            [URL_FOR_STATUS_404, 404, self.authorized_client],
         ]
-        for url, status_code, client in list_for_check_expected_values:
+        for url, status_code, client in expected_status_code:
             with self.subTest():
                 response = client.get(url)
                 self.assertEqual(response.status_code, status_code)
@@ -100,19 +113,23 @@ class StaticURLTests(TestCase):
             self.URL_FOR_POST: 'post.html',
             URL_FOR_PROFILE: 'profile.html',
         }
-        for reverse_name, template in templates_url_names.items():
+        for url, template in templates_url_names.items():
             with self.subTest():
-                response = self.authorized_client.get(reverse_name)
+                response = self.authorized_client.get(url)
                 self.assertTemplateUsed(response, template)
 
     def test_urls_redirect_anonymous_on_admin_login(self):
         """Redirect корректно срабатывает для авторизованного
         и неавторизованного пользователя"""
-        list_for_redirect = [
-            [URL_FOR_NEW_POST, URL_FOR_NEW_POST_REDIRECT, self.guest_client],
+        expected_redirect = [
+            [
+                URL_FOR_NEW_POST,
+                URL_FOR_NEW_POST_REDIRECT,
+                self.guest_client
+            ],
             [
                 self.URL_FOR_OTHER_USER,
-                URL_FOR_OTHER_USER_REDIRECT,
+                self.URL_FOR_OTHER_USER_REDIRECT,
                 self.guest_client,
             ],
             [
@@ -121,7 +138,7 @@ class StaticURLTests(TestCase):
                 self.authorized_client,
             ],
         ]
-        for url, redirect, client in list_for_redirect:
+        for url, redirect, client in expected_redirect:
             with self.subTest():
                 response = client.get(url, follow=True)
                 self.assertRedirects(

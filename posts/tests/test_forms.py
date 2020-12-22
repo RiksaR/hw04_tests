@@ -1,10 +1,10 @@
 from django.test import Client, TestCase
 from django.urls import reverse
 from django import forms
-#import shutil
-#import tempfile
-#from django.conf import settings
-#from django.core.files.uploadedfile import SimpleUploadedFile
+import shutil
+import tempfile
+from django.conf import settings
+from django.core.files.uploadedfile import SimpleUploadedFile
 
 from posts.models import Group, Post, User
 
@@ -17,19 +17,19 @@ POST_TEXT = 'test text'
 URL_FOR_NEW_POST = reverse('new_post')
 URL_FOR_INDEX = reverse('index')
 URL_FOR_GROUP = reverse('group', args=(GROUP_SLUG,))
-URL_FOR_NEW_POST_REDIRECT = (reverse('login') + '?next=/new/')
+URL_FOR_NEW_POST_REDIRECT = (reverse('login') + '?next=' + reverse('new_post'))
 
 
 class PostCreateFormTests(TestCase):
-    #@classmethod
-    #def setUpClass(cls):
-        #super().setUpClass()
-        #settings.MEDIA_ROOT = tempfile.mkdtemp(dir=settings.BASE_DIR)
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        settings.MEDIA_ROOT = tempfile.mkdtemp(dir=settings.BASE_DIR)
 
-    #@classmethod
-    #def tearDownClass(cls):
-        #shutil.rmtree(settings.MEDIA_ROOT, ignore_errors=True)
-        #super().tearDownClass()
+    @classmethod
+    def tearDownClass(cls):
+        shutil.rmtree(settings.MEDIA_ROOT, ignore_errors=True)
+        super().tearDownClass()
 
     def setUp(self):
         self.user = User.objects.create(
@@ -62,64 +62,99 @@ class PostCreateFormTests(TestCase):
         post = Post.objects.first()
         post.delete()
         post.save()
-        TEXT_FOR_CREATE = 'test text for create'
         posts_count = Post.objects.count()
-        #small_gif = (
-        #    b'\x47\x49\x46\x38\x39\x61\x02\x00'
-        #    b'\x01\x00\x80\x00\x00\x00\x00\x00'
-        #    b'\xFF\xFF\xFF\x21\xF9\x04\x00\x00'
-        #    b'\x00\x00\x00\x2C\x00\x00\x00\x00'
-        #    b'\x02\x00\x01\x00\x00\x02\x02\x0C'
-        #    b'\x0A\x00\x3B'
-        #)
-        #uploaded = SimpleUploadedFile(
-        #    name='small.gif',
-        #    content=small_gif,
-        #    content_type='image/gif',
-        #)
+        small_gif = (
+            b'\x47\x49\x46\x38\x39\x61\x02\x00'
+            b'\x01\x00\x80\x00\x00\x00\x00\x00'
+            b'\xFF\xFF\xFF\x21\xF9\x04\x00\x00'
+            b'\x00\x00\x00\x2C\x00\x00\x00\x00'
+            b'\x02\x00\x01\x00\x00\x02\x02\x0C'
+            b'\x0A\x00\x3B'
+        )
+        uploaded = SimpleUploadedFile(
+            name='small.gif',
+            content=small_gif,
+            content_type='image/gif',
+        )
         group_for_create = Group.objects.create(
             title='test title post 2',
             slug='test_slug_post_2',
             description='test description post 2',
         )
         form_data = {
-            'text': TEXT_FOR_CREATE,
+            'text': 'test text for create',
             'group': group_for_create.id,
-        #    'image': uploaded,
+            'image': uploaded,
         }
         response = self.authorized_client.post(
             URL_FOR_NEW_POST,
             data=form_data,
             follow=True,
         )
-        response_guest = self.guest_client.post(
+        created_post = response.context['page'][0]
+        self.assertRedirects(response, URL_FOR_INDEX)
+        self.assertEqual(Post.objects.count(), posts_count + 1)
+        self.assertEqual(created_post.text, 'test text for create')
+        self.assertEqual(created_post.group, group_for_create)
+        self.assertEqual(created_post.author, self.user)
+
+    def test_post_created_in_expected_group(self):
+        """Пост не попадает на чужую групп-ленту"""
+        group_for_test = Group.objects.create(
+            title='title',
+            slug='slug',
+            description='description',
+        )
+        form_data = {
+            'text': 'group',
+            'group': group_for_test.id,
+        }
+        response = self.authorized_client.post(
             URL_FOR_NEW_POST,
             data=form_data,
             follow=True,
         )
-        create_post = Post.objects.first()
+        created_post = response.context['page'][0]
         response_for_group = self.authorized_client.get(URL_FOR_GROUP)
+        response_for_test_group = self.authorized_client.get(
+            reverse('group', args=('slug',))
+        )
         context_for_group = response_for_group.context['page']
-        self.assertRedirects(response, URL_FOR_INDEX)
-        self.assertRedirects(response_guest, URL_FOR_NEW_POST_REDIRECT)
-        self.assertEqual(Post.objects.count(), posts_count + 1)
-        self.assertEqual(create_post.text, TEXT_FOR_CREATE)
-        self.assertEqual(create_post.group, group_for_create)
-        self.assertEqual(create_post.author, self.user)
-        self.assertNotIn(create_post, context_for_group)
-        #self.assertEqual(new_post.image.name, uploaded.name)
+        context_for_test_group = response_for_test_group.context['page']
+        self.assertNotIn(created_post, context_for_group)
+        self.assertIn(created_post, context_for_test_group)
+
+    def test_create_post_by_anonymous(self):
+        """Анонимный пользователь не сможет создать пост"""
+        posts_count_before_try = Post.objects.count()
+        group_for_anonymous = Group.objects.create(
+            title='anonymous',
+            slug='test_slug_anonymous',
+            description='anonymous',
+        )
+        form_data = {
+            'text': 'test text for anonymous',
+            'group': group_for_anonymous.id,
+        }
+        response = self.guest_client.post(
+            URL_FOR_NEW_POST,
+            data=form_data,
+            follow=True,
+        )
+        posts_count_after_try = Post.objects.count()
+        self.assertRedirects(response, URL_FOR_NEW_POST_REDIRECT)
+        self.assertEqual(posts_count_before_try, posts_count_after_try)
 
     def test_change_post(self):
         """После редактирования поста изменяется соответствующая запись
         в базе данных"""
-        TEXT_FOR_POST_EDIT = 'edit text'
         group_for_edit = Group.objects.create(
             title='test title post 2',
             slug='test_slug_post_2',
             description='test description post 2',
         )
         form_data = {
-            'text': TEXT_FOR_POST_EDIT,
+            'text': 'edit text',
             'group': group_for_edit.id,
         }
         response = self.authorized_client.post(
@@ -127,12 +162,9 @@ class PostCreateFormTests(TestCase):
             data=form_data,
             follow=True,
         )
-        response_get = self.authorized_client.get(
-            self.URL_FOR_POST
-        )
-        post = response_get.context['view_post']
+        post = response.context['post']
         self.assertRedirects(response, self.URL_FOR_POST)
-        self.assertEqual(post.text, TEXT_FOR_POST_EDIT)
+        self.assertEqual(post.text, 'edit text')
         self.assertEqual(post.group, group_for_edit)
 
     def test_page_new_post_shows_correct_fields(self):
