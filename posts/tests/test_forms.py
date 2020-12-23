@@ -109,21 +109,16 @@ class PostCreateFormTests(TestCase):
         """Пост не попадает на чужую групп-ленту"""
         SLUG_FOR_TEST_GROUP = 'slug'
         URL_FOR_TEST_GROUP = reverse('group', args=(SLUG_FOR_TEST_GROUP,))
-        group_for_test = Group.objects.create(
+        Group.objects.create(
             title='title',
             slug=SLUG_FOR_TEST_GROUP,
             description='description',
-        )
-        test_post = Post.objects.create(
-            text='group',
-            author=self.user,
-            group=group_for_test,
         )
         response_for_test_group = self.authorized_client.get(
             URL_FOR_TEST_GROUP
         )
         context_for_test_group = response_for_test_group.context['page']
-        self.assertIn(test_post, context_for_test_group)
+        self.assertNotIn(self.post, context_for_test_group)
 
     def test_create_post_by_anonymous(self):
         """Анонимный пользователь не сможет создать пост"""
@@ -148,11 +143,8 @@ class PostCreateFormTests(TestCase):
 
     def test_edit_post_by_anonymous(self):
         """Анонимный пользователь не сможет отредактировать пост"""
-        posts_count_before_try = Post.objects.count()
-        response = self.guest_client.get(self.URL_FOR_POST_EDIT)
-        posts_count_after_try = Post.objects.count()
+        response = self.guest_client.post(self.URL_FOR_POST_EDIT)
         self.assertRedirects(response, self.URL_FOR_GUEST_POST_EDIT)
-        self.assertEqual(posts_count_before_try, posts_count_after_try)
 
     def test_change_post(self):
         """После редактирования поста изменяется соответствующая запись

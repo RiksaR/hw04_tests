@@ -93,7 +93,7 @@ class PostsPagesTests(TestCase):
                 self.assertTrue(self.post==post)
 
     def test_pages_shows_correct_author(self):
-        """Контекстная переменная author формирует корректные данные"""
+        """Контекстная переменная author содержит корректные данные"""
         context_url_names = [
             URL_FOR_PROFILE,
             self.URL_FOR_POST,
@@ -106,20 +106,13 @@ class PostsPagesTests(TestCase):
 
     def test_index_cache(self):
         """Кэширование страницы выполняется корректно"""
-        form_data = {
-            'text': 'cache',
-            'group': self.group.id,
-        }
-        response = self.authorized_client.post(
-            self.URL_FOR_POST_EDIT,
-            data=form_data,
-            follow=True,
-        )
         page_before = self.authorized_client.get(URL_FOR_INDEX)
         content_before = page_before.content
-        post = Post.objects.first()
-        post.delete()
-        post.save()
+        Post.objects.create(
+            text='cache',
+            author=self.user,
+            group=self.group,
+        )
         cache_page = self.authorized_client.get(URL_FOR_INDEX)
         cache_content = cache_page.content
         cache.clear()
