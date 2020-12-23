@@ -143,8 +143,18 @@ class PostCreateFormTests(TestCase):
 
     def test_edit_post_by_anonymous(self):
         """Анонимный пользователь не сможет отредактировать пост"""
-        response = self.guest_client.post(self.URL_FOR_POST_EDIT)
+        form_data = {
+            'text': 'edit text',
+            'group': self.group.id,
+        }
+        response = self.guest_client.post(
+            self.URL_FOR_POST_EDIT,
+            data=form_data,
+            follow=True,
+        )
+        post = Post.objects.first()
         self.assertRedirects(response, self.URL_FOR_GUEST_POST_EDIT)
+        self.assertEqual(self.post, post)
 
     def test_change_post(self):
         """После редактирования поста изменяется соответствующая запись
