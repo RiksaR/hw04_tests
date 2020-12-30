@@ -83,7 +83,8 @@ class StaticURLTests(TestCase):
         self.authorized_client.force_login(self.user_client)
 
     def test_urls_exists_at_desired_location(self):
-        """Страница по заданному адресу возвращает ожидаемый status_code"""
+        """Страница по заданному адресу возвращает ожидаемый status_code
+        """
         expected_status_code = [
             [URL_FOR_INDEX, 200, self.guest_client],
             [URL_FOR_GROUP, 200, self.guest_client],
@@ -106,7 +107,8 @@ class StaticURLTests(TestCase):
                 self.assertEqual(response.status_code, status_code)
 
     def test_urls_uses_correct_template(self):
-        """URL-адрес использует соответствующий шаблон."""
+        """URL-адрес использует соответствующий шаблон
+        """
         templates_url_names = {
             URL_FOR_INDEX: 'index.html',
             URL_FOR_GROUP: 'group.html',
@@ -122,7 +124,8 @@ class StaticURLTests(TestCase):
 
     def test_urls_redirect_anonymous_on_admin_login(self):
         """Redirect корректно срабатывает для авторизованного
-        и неавторизованного пользователя"""
+        и неавторизованного пользователя
+        """
         expected_redirect = [
             [
                 URL_FOR_NEW_POST,

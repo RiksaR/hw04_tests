@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}Интересные записи{% endblock %}
+{% block header %}Интересные записи{% endblock %}
+{% block content %}
+<div class="container">
+    {% include "menu.html" with follow=True %}
+    {% load cache %}
+    {% cache 20 index page %}
+    {% for post in page %}
+        <p>{% include "post_item.html" with post=post %}</p>
+    {% endfor %}
+    {% endcache %}
+</div>
+    {% if page.has_other_pages %}
+        {% include "paginator.html" with items=page paginator=paginator%}
+    {% endif %}    
+{% endblock %} 

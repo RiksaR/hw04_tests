@@ -28,7 +28,7 @@ class PaginatorViewsTest(TestCase):
         cls.user = User.objects.create(
             username=USERNAME,
         )
-        cls.group =  Group.objects.create(
+        cls.group = Group.objects.create(
             title=GROUP_TITLE_FOR_POST,
             slug=GROUP_SLUG_FOR_POST,
             description=GROUP_DESCRIPTION_FOR_POST,
@@ -43,7 +43,8 @@ class PaginatorViewsTest(TestCase):
         self.authorized_client.force_login(self.user_for_client)
 
     def test_first_page_containse_ten_records(self):
-        """Paginator правильно отображает заданное количество постов"""
+        """Paginator правильно отображает заданное количество постов
+        """
         posts_list = []
         for count in range(0, 13):
             user = User.objects.create(
@@ -64,7 +65,8 @@ class PaginatorViewsTest(TestCase):
         self.assertEqual(len(response.context['page']), 10)
 
     def test_second_page_containse_three_records(self):
-        """Paginator правильно отображает заданное количество постов"""
+        """Paginator правильно отображает заданное количество постов
+        """
         posts_list = []
         for count in range(0, 13):
             user = User.objects.create(
@@ -85,7 +87,8 @@ class PaginatorViewsTest(TestCase):
         self.assertEqual(len(response.context['page']), 3)
 
     def test_first_page_group_containse_ten_records(self):
-        """Paginator правильно отображает заданное количество постов"""
+        """Paginator правильно отображает заданное количество постов
+        """
         posts_list = []
         for count in range(0, 13):
             posts = Post.objects.create(
@@ -98,7 +101,8 @@ class PaginatorViewsTest(TestCase):
         self.assertEqual(len(response.context['page']), 10)
 
     def test_second_page_group_containse_three_records(self):
-        """Paginator правильно отображает заданное количество постов"""
+        """Paginator правильно отображает заданное количество постов
+        """
         posts_list = []
         for count in range(0, 13):
             posts = Post.objects.create(

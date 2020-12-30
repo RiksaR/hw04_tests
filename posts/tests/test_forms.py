@@ -106,7 +106,8 @@ class PostCreateFormTests(TestCase):
         self.assertIsNotNone(created_post.image)
 
     def test_post_created_in_expected_group(self):
-        """Пост не попадает на чужую групп-ленту"""
+        """Пост не попадает на чужую групп-ленту
+        """
         SLUG_FOR_TEST_GROUP = 'slug'
         URL_FOR_TEST_GROUP = reverse('group', args=(SLUG_FOR_TEST_GROUP,))
         Group.objects.create(
@@ -121,7 +122,8 @@ class PostCreateFormTests(TestCase):
         self.assertNotIn(self.post, context_for_test_group)
 
     def test_create_post_by_anonymous(self):
-        """Анонимный пользователь не сможет создать пост"""
+        """Анонимный пользователь не сможет создать пост
+        """
         posts_count_before_try = Post.objects.count()
         group_for_anonymous = Group.objects.create(
             title='anonymous',
@@ -142,7 +144,8 @@ class PostCreateFormTests(TestCase):
         self.assertEqual(posts_count_before_try, posts_count_after_try)
 
     def test_edit_post_by_anonymous(self):
-        """Анонимный пользователь не сможет отредактировать пост"""
+        """Анонимный пользователь не сможет отредактировать пост
+        """
         form_data = {
             'text': 'edit text',
             'group': self.group.id,
@@ -158,7 +161,8 @@ class PostCreateFormTests(TestCase):
 
     def test_change_post(self):
         """После редактирования поста изменяется соответствующая запись
-        в базе данных"""
+        в базе данных
+        """
         group_for_edit = Group.objects.create(
             title='test title post 2',
             slug='test_slug_post_2',
@@ -179,7 +183,8 @@ class PostCreateFormTests(TestCase):
         self.assertEqual(post.group, group_for_edit)
 
     def test_page_new_post_shows_correct_fields(self):
-        """Шаблон new.html сформирован с правильными типами полей формы"""
+        """Шаблон new.html сформирован с правильными типами полей формы
+        """
         response = self.authorized_client.get(reverse('new_post'))
         form_fields = {
             'text': forms.fields.CharField,
@@ -192,7 +197,8 @@ class PostCreateFormTests(TestCase):
 
     def test_page_new_post_edit_shows_correct_fields(self):
         """Шаблон new.html сформирован с правильным полями формы для
-        редактируемого поста"""
+        редактируемого поста
+        """
         form_fields = {
             'text': forms.fields.CharField,
             'group': forms.fields.ChoiceField,

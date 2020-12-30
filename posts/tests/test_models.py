@@ -31,7 +31,8 @@ class PostModelTest(TestCase):
         )
 
     def test_verbose_name(self):
-        """vervose_name в полях совпадает с ожидаемым."""
+        """vervose_name в полях совпадает с ожидаемым
+        """
         post = self.post
         field_verboses = {
             'text': 'Текст сообщения',
@@ -45,7 +46,8 @@ class PostModelTest(TestCase):
                 )
 
     def test_help_text(self):
-        """help_text в полях совпадает с ожидаемым."""
+        """help_text в полях совпадает с ожидаемым
+        """
         post = self.post
         field_help_texts = {
             'text': 'Введите ваше сообщение',
@@ -58,7 +60,8 @@ class PostModelTest(TestCase):
                 )
 
     def text_object_name_is_string_field(self):
-        """Вызов объекта как str должен вывести заданную строку"""
+        """Вызов объекта как str должен вывести заданную строку
+        """
         post = self.post
         if post.group:
             expected_object_name = (f'Текст поста: "{post.text[:15]}...", '
@@ -80,7 +83,8 @@ class GroupModelTest(TestCase):
         )
 
     def test_verbose_name(self):
-        """verbose_name в полях совпадает с ожидаемым."""
+        """verbose_name в полях совпадает с ожидаемым
+        """
         group = self.group
         field_verboses = {
             'title': 'Заголовок группы',
@@ -94,7 +98,8 @@ class GroupModelTest(TestCase):
                 )
 
     def test_help_text(self):
-        """help_text в полях совпадает с ожидаемым."""
+        """help_text в полях совпадает с ожидаемым
+        """
         group = self.group
         field_help_texts = {
             'title': 'Введите название группы длиной не более 200 символов',
@@ -109,7 +114,8 @@ class GroupModelTest(TestCase):
                 )
 
     def text_object_name_is_title_field(self):
-        """Вызов объекта как str должен вывести содержимое поля title"""
+        """Вызов объекта как str должен вывести содержимое поля title
+        """
         group = self.group
         expected_object_name = group.title
         self.assertEqual(expected_object_name, str(group))

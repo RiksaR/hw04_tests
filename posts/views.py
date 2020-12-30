@@ -3,7 +3,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.core.paginator import Paginator
 
 from .forms import PostForm, CommentsForm
-from .models import Group, Post, User
+from .models import Group, Post, User, Follow
 
 
 def index(request):
@@ -51,6 +51,12 @@ def new_post(request):
 
 def profile(request, username):
     author = get_object_or_404(User, username=username)
+    followers = Follow.objects.filter(author=author).count()
+    following = Follow.objects.filter(user=author).count()
+    follow = Follow.objects.filter(
+        user=request.user.id,
+        author=author.id
+        ).exists()
     posts = author.posts.all()
     paginator = Paginator(posts, 10)
     page_number = request.GET.get('page')
@@ -63,6 +69,9 @@ def profile(request, username):
             'page': page,
             'author': author,
             'paginator': paginator,
+            'followers': followers,
+            'following': following,
+            'follow': follow,
         }
     )
 
@@ -140,3 +149,41 @@ def add_comment(request, username, post_id):
     comment.post = post
     comment.save()
     return redirect('post', username, post_id)
+
+
+@login_required
+def follow_index(request):
+    post_list = Post.objects.filter(author__following__user=request.user.id)
+    paginator = Paginator(post_list, 10)
+    page_number = request.GET.get('page')
+    page = paginator.get_page(page_number)
+    return render(
+        request,
+        'follow.html',
+        {
+            'page': page,
+            'paginator': paginator
+        }
+    )
+
+
+@login_required
+def profile_follow(request, username):
+    author = get_object_or_404(User, username=username)
+    if request.user.username != username:
+        Follow.objects.get_or_create(
+            user_id=request.user.id,
+            author_id=author.id,
+        )
+    return redirect('profile', username)
+
+
+@login_required
+def profile_unfollow(request, username):
+    follow = get_object_or_404(
+        Follow,
+        author__username=username,
+        user=request.user
+    )
+    follow.delete()
+    return redirect('profile', username=username)
